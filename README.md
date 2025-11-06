@@ -30,7 +30,7 @@ and deploys it as a Dockerized container that can run locally or in the cloud.
 
 ## Local Development Setup
 
-### 1️⃣ Build the Spring Boot JAR
+### Build the Spring Boot JAR
 
 Make sure Maven is configured and your Angular build is generated inside  
 `src/main/resources/static` (via `ng build --prod` in `src/main/UI`).
