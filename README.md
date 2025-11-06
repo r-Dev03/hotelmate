@@ -48,16 +48,21 @@ target/D387_sample_code-0.0.2-SNAPSHOT.jar
 # Running the docker container
 
 ## Start with base JDK image
+`docker
 FROM eclipse-temurin:17-jdk
-
+`
 ## Copy project to image
+`docker
 COPY target/D387_sample_code-0.0.2-SNAPSHOT.jar /app/myApp.jar
+`
 
 ## Expose the front-end & backend ports
+`docker
 EXPOSE 8080 4200
-
+`
 ## Run our app when image is started
+`docker
 CMD ["java","-jar","/app/myApp.jar"]
-
+`
 
 
