@@ -521,35 +521,6 @@ ng test
 - Multithreading for demonstration (may not be necessary for simple i18n)
 - Limited currency support (3 currencies vs. comprehensive conversion)
 
-## Future Enhancements
-
-**Security:**
-- Add Spring Security with JWT authentication
-- Role-based access control (admin, customer, staff)
-- HTTPS/TLS configuration
-
-**Features:**
-- Real-time availability checking
-- Payment gateway integration (Stripe, PayPal)
-- Email confirmation system
-- Booking modification/cancellation
-- Customer review system
-- Real currency exchange rate API integration
-
-**Technical Improvements:**
-- Database persistence (PostgreSQL/MySQL)
-- Comprehensive unit and integration tests
-- API documentation (Swagger/OpenAPI)
-- CI/CD pipeline
-- Kubernetes deployment manifests
-- Enhanced timezone handling with DST support
-
-**Scalability:**
-- Redis caching for frequently accessed data
-- Load balancing for multi-instance deployment
-- Database connection pooling optimization
-- CDN for static assets
-
 ## License
 
 MIT License - see LICENSE file for details
