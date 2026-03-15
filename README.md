@@ -550,26 +550,6 @@ ng test
 - Database connection pooling optimization
 - CDN for static assets
 
-## Common Issues
-
-**Issue: `ng` command not found when running Maven**
-- Solution: Ensure Node.js and Angular CLI are installed. If using Nix, run `nix develop` first.
-
-**Issue: Angular build fails during Maven build**
-- Solution: Run `cd src/main/UI && npm install` to install dependencies first.
-
-**Issue: CORS errors in development mode**
-- Solution: Ensure Angular proxy configuration points to `http://localhost:8080`
-
-**Issue: Port 8080 already in use**
-- Solution: Kill the process using port 8080 or change the port in `application.properties`:
-```properties
-  server.port=8081
-```
-
-**Issue: Resource bundle not found**
-- Solution: Ensure `.properties` files are in `src/main/resources` and properly named.
-
 ## License
 
 MIT License - see LICENSE file for details
