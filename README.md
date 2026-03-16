@@ -397,7 +397,3 @@ ng test
 ## License
 
 MIT License - see LICENSE file for details
-
----
-
-*A full-stack application demonstrating Spring Boot backend development, Angular frontend integration, multithreading, internationalization, and modern DevOps practices.*
