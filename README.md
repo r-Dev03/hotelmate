@@ -95,11 +95,6 @@ Cosmetic currency conversion for display purposes:
 
 ### Prerequisites
 
-**Option A: Using Nix (Recommended)**
-- Nix package manager with flakes enabled
-- direnv (optional, for automatic environment loading)
-
-**Option B: Manual Installation**
 - Java 17 or higher
 - Maven 3.8+
 - Node.js 20+ (LTS recommended)
@@ -107,136 +102,76 @@ Cosmetic currency conversion for display purposes:
 
 **Optional:**
 - Docker (for containerized deployment)
+- Nix with flakes enabled (alternative development environment)
 
-## Setup
+### Installation
 
-### Option 1: Nix Development Environment (Recommended)
-
-The project includes a Nix flake that provides all required dependencies.
-
-**With direnv (automatic):**
-```bash
-# Clone repository
-git clone https://github.com/yourusername/hotelmate.git
-cd hotelmate
-
-# Allow direnv to load the environment
-direnv allow
-
-# Dependencies are automatically loaded!
-# The Nix shell will activate whenever you enter this directory
-```
-
-**Without direnv (manual):**
-```bash
-# Clone repository
-git clone https://github.com/yourusername/hotelmate.git
-cd hotelmate
-
-# Enter Nix development shell
-nix develop
-
-# You're now in the development environment with all dependencies
-```
-
-**What the Nix environment provides:**
-- ✅ OpenJDK 17
-- ✅ Maven 3.x
-- ✅ Node.js 24
-- ✅ Angular CLI
-- ✅ Java language server (for editor support)
-- ✅ Google Java Format
-
----
-
-### Option 2: Manual Installation
-
-**1. Install prerequisites:**
-- Install Java 17: https://adoptium.net/
-- Install Maven: https://maven.apache.org/download.cgi
-- Install Node.js: https://nodejs.org/
-
-**2. Clone repository:**
+**1. Clone repository:**
 ```bash
 git clone https://github.com/yourusername/hotelmate.git
 cd hotelmate
 ```
 
-**3. Install Angular dependencies:**
+**2. Install Angular dependencies:**
 ```bash
 cd src/main/UI
 npm install
 cd ../../..
 ```
 
+### Alternative: Using Nix
+
+If you use Nix:
+```bash
+nix develop
+# All dependencies are provided
+```
+
 ## Running the Application
 
-### Development Mode (Separate Backend & Frontend)
-
-This mode is best for active development with hot-reload.
+### Development Mode
 
 **Terminal 1 - Backend:**
 ```bash
-# If using Nix
-nix develop  # or just cd into directory if using direnv
-
-# Run Spring Boot
 mvn spring-boot:run
 ```
 
-Backend will be available at: `http://localhost:8080`
+Backend available at: `http://localhost:8080`
 
 **Terminal 2 - Frontend:**
 ```bash
-# Navigate to Angular app
 cd src/main/UI
-
-# Start development server
 ng serve
-# or
-npm start
 ```
 
-Frontend will be available at: `http://localhost:4200`
+Frontend available at: `http://localhost:4200`
 
 The Angular dev server will proxy API requests to the Spring Boot backend on port 8080.
 
 ---
 
-### Production Build (Angular Embedded in JAR)
-
-This creates a single JAR file with the Angular app embedded.
+### Production Build
 ```bash
-# Navigate to Angular app
+# Build Angular
 cd src/main/UI
-
-# Build for production
-npm install  # if not already done
 ng build --configuration production
-
-# Copy build to Spring Boot static resources
 cp -r dist/* ../resources/static/
 
-# Go back to project root
+# Build Spring Boot JAR
 cd ../../..
-
-# Build Spring Boot JAR (includes Angular build)
 mvn clean package
 
-# Run the combined JAR
+# Run
 java -jar target/hotelmate-0.0.2-SNAPSHOT.jar
 ```
 
-Access the full application at: `http://localhost:8080`
+Access at: `http://localhost:8080`
 
 ---
 
-### Docker Deployment
+### Docker
 ```bash
-# Build Docker image
 docker build -t hotelmate:latest .
-
-# Run container
 docker run -p 8080:8080 hotelmate:latest
 ```
 
@@ -438,62 +373,6 @@ mvn clean package
 | GET | `/api/time/{timezone}` | Get current time in specified timezone |
 | GET | `/api/price/{amount}` | Convert price to multiple currencies |
 
-## Nix Development Environment
-
-This project includes a Nix flake for reproducible development environments.
-
-### What is Nix?
-
-Nix is a package manager that provides:
-- ✅ Reproducible builds across machines
-- ✅ Isolated development environments
-- ✅ No conflicts with system packages
-- ✅ Easy onboarding for new developers
-
-### Setting up Nix
-
-**1. Install Nix (if not already installed):**
-```bash
-# Linux/macOS
-sh <(curl -L https://nixos.org/nix/install) --daemon
-
-# Enable flakes
-mkdir -p ~/.config/nix
-echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
-```
-
-**2. Optional: Install direnv for automatic environment loading:**
-```bash
-# macOS
-brew install direnv
-
-# Linux (Debian/Ubuntu)
-sudo apt install direnv
-
-# Add to your shell config (~/.bashrc, ~/.zshrc)
-eval "$(direnv hook bash)"  # or zsh, fish, etc.
-```
-
-**3. Enter the development environment:**
-```bash
-cd hotelmate
-
-# With direnv
-direnv allow
-
-# Without direnv
-nix develop
-```
-
-### Flake Contents
-
-The `flake.nix` provides:
-- **Java:** OpenJDK 17 + Maven
-- **Node.js:** Node.js 24 + Angular CLI
-- **Developer tools:** JDT language server, Google Java Format
-
-All dependencies are pinned to specific versions for reproducibility.
-
 ## Testing
 
 ### Backend Tests
@@ -507,19 +386,13 @@ cd src/main/UI
 ng test
 ```
 
-## Limitations & Trade-offs
+## Limitations
 
-**Current Limitations:**
 - No authentication/authorization
 - Currency conversion is cosmetic only (no actual exchange rates)
 - Basic timezone conversion (no DST edge case handling)
 - No database persistence (in-memory H2 or optional)
 - No payment processing
-
-**Design Trade-offs:**
-- Embedded Angular (convenience vs. deployment flexibility)
-- Multithreading for demonstration (may not be necessary for simple i18n)
-- Limited currency support (3 currencies vs. comprehensive conversion)
 
 ## License
 
