@@ -5,7 +5,7 @@ FROM eclipse-temurin:17-jdk
 COPY target/*.jar /app/myApp.jar
 
 # Expose the front-end & backend ports
-EXPOSE 8080 4200
+EXPOSE 8080 
 
 # Run our app when image is started
 CMD ["java","-jar","/app/myApp.jar"]
