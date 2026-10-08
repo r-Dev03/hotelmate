@@ -1,399 +1,103 @@
 # HotelMate
 
-**Full-Stack Hotel Reservation System with Multithreading and Internationalization**
+**Hotel reservation app with bilingual messages, multi-time-zone display, and a Docker build.**
 
 [![Java](https://img.shields.io/badge/Java-17-orange.svg)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-2.7-brightgreen.svg)](https://spring.io/projects/spring-boot)
 [![Angular](https://img.shields.io/badge/Angular-14-red.svg)](https://angular.io/)
 [![Docker](https://img.shields.io/badge/Docker-ready-blue.svg)](https://www.docker.com/)
 
-## Overview
+Guests search for rooms by date and book them. The Spring Boot backend serves both the API and the compiled Angular frontend from a single JAR.
 
-HotelMate is a full-stack hotel reservation application that demonstrates advanced Java features including multithreading, internationalization (i18n), timezone conversion, and multi-currency display. Built with Spring Boot backend and Angular frontend, it showcases modern web application development with enterprise-level features.
+**Built on:** a Spring Boot + Angular hotel reservation starter template that provided room search, reservations, and the H2 data layer. Added in this repository: English/French welcome messages, presentation times across three time zones, prices shown in three currencies, the Docker image, and a Nix dev environment.
 
-**Key Features:**
-- Multithreaded welcome message generation (English/French)
-- Internationalization with resource bundles
-- Timezone conversion (Eastern, Mountain, UTC)
-- Multi-currency display (USD, CAD, EUR)
-- Angular 14 frontend embedded in Spring Boot JAR
-- Docker containerization for easy deployment
+## Highlights
 
-## Problem Statement
+- English and French welcome messages loaded from Java resource bundles and served by language tag
+- Presentation times converted to Eastern, Mountain, and UTC with `java.time`, so daylight saving is handled automatically
+- Room prices displayed in USD, CAD, and EUR, with CAD and EUR formatted by Angular's `currency` pipe
+- One Maven build produces a single JAR with the frontend included, packaged into a Docker image
 
-Hotels operating across multiple regions need reservation systems that:
-- Support multiple languages for diverse customer bases
-- Handle timezone differences for international bookings
-- Display prices in various currencies
-- Efficiently process concurrent requests
+## How It Works
 
-Traditional single-language, single-timezone systems fail to meet modern hospitality industry requirements.
+**Welcome messages:** `translation_en_US.properties` and `translation_fr_CA.properties` hold the text. `GET /welcome?lang=fr-CA` loads the matching bundle:
 
-## Technical Approach
-
-### Multithreading
-
-Uses Java's `ExecutorService` for concurrent welcome message generation:
-```java
-ExecutorService executor = Executors.newFixedThreadPool(2);
-executor.submit(() -> generateWelcomeMessage("en_US"));
-executor.submit(() -> generateWelcomeMessage("fr_CA"));
-executor.shutdown();
-```
-
-**Why multithreading?** Demonstrates concurrent request handling, improves performance for I/O-bound operations.
-
-### Internationalization (i18n)
-
-Resource bundles for bilingual support:
-- `translation_en_US.properties` - English messages
-- `translation_fr_CA.properties` - French (Canadian) messages
 ```java
 ResourceBundle bundle = ResourceBundle.getBundle("translation", locale);
-String welcome = bundle.getString("welcome");
+return bundle.getString("welcome");
 ```
 
-### Timezone Conversion
+**Time zones:** `GET /presentation` converts one instant into three zones. Using region IDs like `America/Denver` instead of fixed offsets lets the JDK apply daylight saving rules:
 
-Custom utility for timezone-aware timestamps:
 ```java
-public static ZonedDateTime convertToTimezone(ZonedDateTime time, String timezone) {
-    return time.withZoneSameInstant(ZoneId.of(timezone));
-}
+ZonedDateTime time = ZonedDateTime.now();
+ZonedDateTime et  = time.withZoneSameInstant(ZoneId.of("America/New_York"));
+ZonedDateTime mt  = time.withZoneSameInstant(ZoneId.of("America/Denver"));
+ZonedDateTime utc = time.withZoneSameInstant(ZoneId.of("UTC"));
 ```
 
-Supports: `America/New_York` (ET), `America/Denver` (MT), `UTC`
+The landing page shows the current server time in all three zones, e.g. `There is a presentation starting at: 02:00 PM ET / 12:00 PM MT / 06:00 PM UTC`.
 
-### Multi-Currency Display
+**Single build:** one Maven command builds both halves of the app into a single JAR:
 
-Cosmetic currency conversion for display purposes:
-- USD (base)
-- CAD (Canadian Dollar)
-- EUR (Euro)
-
-**Note:** Currency display is cosmetic only - no actual payment processing.
-
-## Tech Stack
-
-**Backend:**
-- Java 17
-- Spring Boot 2.7
-- Spring MVC
-- Maven
-
-**Frontend:**
-- Angular 14
-- TypeScript 4.7
-- RxJS 7.5
-- Angular Material (optional)
-
-**DevOps:**
-- Docker
-- Nix (reproducible development environment)
-
-## Setup & Installation
-
-### Prerequisites
-
-- Java 17 or higher
-- Maven 3.8+
-- Node.js 20+ (LTS recommended)
-- npm 8+
-
-**Optional:**
-- Docker (for containerized deployment)
-- Nix with flakes enabled (alternative development environment)
-
-### Installation
-
-**1. Clone repository:**
-```bash
-git clone https://github.com/yourusername/hotelmate.git
-cd hotelmate
+```
+./mvnw clean package
+   │
+   ├─▶ exec-maven-plugin runs `ng build`
+   │      src/main/UI  ──▶  src/main/resources/static/   (compiled Angular)
+   │
+   ├─▶ compile Java + copy resources (including static/)
+   │
+   └─▶ target/*.jar   ── backend API + frontend in one file
+             │
+             ├─▶ java -jar target/*.jar        → http://localhost:8080
+             └─▶ docker build -t hotelmate .   → same JAR on a Java 17 image
 ```
 
-**2. Install Angular dependencies:**
-```bash
-cd src/main/UI
-npm install
-cd ../../..
-```
+Spring Boot serves anything in `static/` at the root URL, so one `java -jar` command runs the whole app on port 8080.
 
-### Alternative: Using Nix
-
-If you use Nix:
-```bash
-nix develop
-# All dependencies are provided
-```
-
-## Running the Application
-
-### Development Mode
-
-**Terminal 1 - Backend:**
-```bash
-mvn spring-boot:run
-```
-
-Backend available at: `http://localhost:8080`
-
-**Terminal 2 - Frontend:**
-```bash
-cd src/main/UI
-ng serve
-```
-
-Frontend available at: `http://localhost:4200`
-
-The Angular dev server will proxy API requests to the Spring Boot backend on port 8080.
-
----
-
-### Production Build
-```bash
-# Build Angular
-cd src/main/UI
-ng build --configuration production
-cp -r dist/* ../resources/static/
-
-# Build Spring Boot JAR
-cd ../../..
-mvn clean package
-
-# Run
-java -jar target/hotelmate-0.0.2-SNAPSHOT.jar
-```
-
-Access at: `http://localhost:8080`
-
----
-
-### Docker
-```bash
-docker build -t hotelmate:latest .
-docker run -p 8080:8080 hotelmate:latest
-```
-
-Access at: `http://localhost:8080`
-
-## Project Structure
-```
-hotelmate/
-├── Dockerfile                       # Docker containerization
-├── mvnw                             # Maven wrapper (Unix)
-├── mvnw.cmd                         # Maven wrapper (Windows)
-├── pom.xml                          # Maven dependencies
-├── flake.nix                        # Nix development environment
-├── flake.lock                       # Nix dependency lock file
-├── README.md
-└── src/
-    ├── main/
-    │   ├── java/
-    │   │   └── edu/wgu/d387sample/
-    │   │       ├── D387SampleCodeApplication.java    # Spring Boot entry point
-    │   │       ├── config/
-    │   │       │   └── TimeZoneConfig.java           # Timezone configuration
-    │   │       ├── convertor/
-    │   │       │   └── CurrencyConverter.java        # Currency display
-    │   │       ├── rest/
-    │   │       │   ├── ReservationResource.java      # REST endpoints
-    │   │       │   └── WelcomeMessageController.java # Multithreaded i18n
-    │   │       └── model/
-    │   │           ├── Reservation.java
-    │   │           └── Room.java
-    │   ├── resources/
-    │   │   ├── application.properties                # Spring configuration
-    │   │   ├── translation_en_US.properties          # English resource bundle
-    │   │   ├── translation_fr_CA.properties          # French resource bundle
-    │   │   └── static/                               # Angular production builds
-    │   └── UI/                                       # Angular frontend (embedded)
-    │       ├── angular.json                          # Angular workspace config
-    │       ├── package.json                          # npm dependencies
-    │       ├── package-lock.json
-    │       ├── karma.conf.js                         # Test configuration
-    │       ├── tsconfig.json                         # TypeScript config
-    │       ├── tsconfig.app.json
-    │       ├── tsconfig.spec.json
-    │       ├── README.md                             # Angular-specific README
-    │       └── src/
-    │           ├── app/                              # Angular components
-    │           ├── assets/                           # Images, icons
-    │           ├── environments/                     # Environment configs
-    │           └── index.html                        # Main HTML
-    └── test/
-        └── java/
-            └── edu/wgu/d387sample/
-                └── D387SampleCodeApplicationTests.java
-```
-
-## Key Features Explained
-
-### Multithreaded Welcome Messages
-
-Concurrent generation of bilingual welcome messages:
-```java
-@RestController
-@RequestMapping("/api")
-public class WelcomeMessageController {
-    
-    @GetMapping("/welcome")
-    public Map<String, String> getWelcomeMessages() {
-        ExecutorService executor = Executors.newFixedThreadPool(2);
-        
-        Future<String> englishFuture = executor.submit(() -> 
-            generateMessage("en_US"));
-        Future<String> frenchFuture = executor.submit(() -> 
-            generateMessage("fr_CA"));
-        
-        // Wait for both threads to complete
-        Map<String, String> messages = new HashMap<>();
-        messages.put("english", englishFuture.get());
-        messages.put("french", frenchFuture.get());
-        
-        executor.shutdown();
-        return messages;
-    }
-}
-```
-
-**Benefits:**
-- Demonstrates concurrent request handling
-- Simulates real-world parallel processing
-- Thread-safe resource bundle access
-
-### Timezone Conversion
-```java
-public class TimeZoneUtils {
-    public static String getCurrentTime(String timezone) {
-        ZonedDateTime now = ZonedDateTime.now(ZoneId.of(timezone));
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss z");
-        return now.format(formatter);
-    }
-}
-```
-
-**Supported Timezones:**
-- `America/New_York` (Eastern Time)
-- `America/Denver` (Mountain Time)
-- `UTC` (Coordinated Universal Time)
-
-### Resource Bundles
-
-**translation_en_US.properties:**
-```properties
-welcome=Welcome to our hotel!
-rooms=Available Rooms
-book=Book Now
-```
-
-**translation_fr_CA.properties:**
-```properties
-welcome=Bienvenue à notre hôtel!
-rooms=Chambres Disponibles
-book=Réserver Maintenant
-```
-
-### Currency Display
-```java
-public class CurrencyConverter {
-    public static Map<String, Double> convertPrice(double usdPrice) {
-        Map<String, Double> prices = new HashMap<>();
-        prices.put("USD", usdPrice);
-        prices.put("CAD", usdPrice * 1.35);  // Cosmetic conversion
-        prices.put("EUR", usdPrice * 0.92);  // Cosmetic conversion
-        return prices;
-    }
-}
-```
-
-**Note:** No actual currency exchange - display purposes only.
-
-## Frontend Integration
-
-HotelMate uses an **embedded architecture** where Angular is bundled inside the Spring Boot JAR:
-
-**Development Mode:**
-- Angular runs on `http://localhost:4200` (via `ng serve`)
-- Spring Boot runs on `http://localhost:8080`
-- Angular proxies API requests to backend
-
-**Production Mode:**
-- Angular is built and copied to `src/main/resources/static/`
-- Packaged inside the Spring Boot JAR
-- Single deployment artifact
-- Everything served from `http://localhost:8080`
-
-### Why Embedded?
-
-**Advantages:**
-- Single JAR deployment
-- Simplified deployment process
-- No CORS configuration needed in production
-- Easier Docker containerization
-
-**Trade-offs:**
-- Frontend and backend coupled in same repo
-- Need to rebuild JAR for frontend changes in production
-- Larger JAR file size
-
-## Development Workflow
-
-### Typical Development Cycle
-
-**Backend changes:**
-1. Edit Java files in `src/main/java`
-2. Spring Boot auto-reloads with `mvn spring-boot:run`
-3. Test API endpoints at `http://localhost:8080/api`
-
-**Frontend changes:**
-1. Edit Angular files in `src/main/UI/src`
-2. Angular auto-reloads with `ng serve`
-3. View changes at `http://localhost:4200`
-
-**Full rebuild:**
-```bash
-# Build Angular
-cd src/main/UI
-ng build --configuration production
-cp -r dist/* ../resources/static/
-
-# Build Spring Boot JAR
-cd ../../..
-mvn clean package
-```
-
-## API Endpoints
+## API
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/welcome` | Get bilingual welcome messages (multithreaded) |
-| GET | `/api/reservations` | List all reservations |
-| POST | `/api/reservations` | Create new reservation |
-| GET | `/api/time/{timezone}` | Get current time in specified timezone |
-| GET | `/api/price/{amount}` | Convert price to multiple currencies |
+| GET | `/welcome?lang={tag}` | Welcome message for `en-US` or `fr-CA` |
+| GET | `/presentation` | Presentation time in ET, MT, and UTC |
+| GET | `/room/reservation/v1` | Search available rooms by check-in and check-out dates |
+| GET | `/room/reservation/v1/{roomId}` | Get one room |
+| POST | `/room/reservation/v1` | Create a reservation |
 
-## Testing
+The starter template also defines `PUT` and `DELETE` routes for reservations, but they aren't implemented.
 
-### Backend Tests
+## Getting Started
+
+**Prerequisites:** Java 17, Node.js 20, and Angular CLI 14 (`npm install -g @angular/cli@14`). Or run `nix develop`, which provides Java and Node and puts the project's own Angular CLI on your PATH once the frontend dependencies are installed.
+
 ```bash
-mvn test
+git clone https://github.com/r-Dev03/hotelmate.git
+cd hotelmate
+(cd src/main/UI && npm install)
+
+./mvnw clean package
+java -jar target/*.jar
 ```
 
-### Frontend Tests
+Open `http://localhost:8080`.
+
+**With Docker** (after `./mvnw clean package`):
+
 ```bash
-cd src/main/UI
-ng test
+docker build -t hotelmate .
+docker run -p 8080:8080 hotelmate
 ```
 
-## Limitations
+**For frontend development**, run `./mvnw spring-boot:run` in one terminal and `ng serve` from `src/main/UI` in another, then open `http://localhost:4200`.
 
-- No authentication/authorization
-- Currency conversion is cosmetic only (no actual exchange rates)
-- Basic timezone conversion (no DST edge case handling)
-- No database persistence (in-memory H2 or optional)
-- No payment processing
+## Tech Stack
 
-## License
+Java 17 · Spring Boot · Spring Data JPA · H2 · Angular 14 · TypeScript · RxJS · Docker · Nix · Maven
 
-MIT License - see LICENSE file for details
+## Known Limitations
+
+- **Currency is display-only.** The same base price is shown with each currency's symbol; no exchange rates are applied.
+- **Partial translation.** Only the welcome message is translated; the rest of the UI is English.
+- **No authentication or payments.** Reservations are open to anyone.
