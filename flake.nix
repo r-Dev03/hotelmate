@@ -18,12 +18,14 @@
           {
             packages = with pkgs; [
               jdt-language-server
-              jdk
+              jdk17
               maven
-              nodejs_20 
-              nodePackages.npm 
-              nodePackages."@angular/cli"
+              nodejs_20
             ];
+            # Use the project's own Angular CLI (installed by `npm install` in src/main/UI)
+            shellHook = ''
+              export PATH="$PWD/src/main/UI/node_modules/.bin:$PATH"
+            '';
           };
       }
     );
