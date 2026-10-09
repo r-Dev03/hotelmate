@@ -9,7 +9,7 @@
 
 Guests search for rooms by date and book them. The Spring Boot backend serves both the API and the compiled Angular frontend from a single JAR.
 
-**Built on:** a Spring Boot + Angular hotel reservation starter template that provided room search, reservations, and the H2 data layer. Added in this repository: English/French welcome messages, presentation times across three time zones, prices shown in three currencies, the Docker image, and a Nix dev environment.
+**Built on:** a Spring Boot + Angular hotel reservation starter template that provided room search, reservations, the H2 data layer, and the "Landon Hotel" page design and branding. Added in this repository: English/French welcome messages, presentation times across three time zones, prices shown in three currencies, the Docker image, and a Nix dev environment.
 
 ## Highlights
 
